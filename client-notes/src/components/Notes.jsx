@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import '../assets/Notes.css';
-import { fetchNotes, deleteNoteLocally } from './SQLInit'; // Import your functions
+import { fetchNotes, deleteNoteLocally } from '../SQLInit'; // Import your functions
 
 function Notes() {
     const [notes, setNotes] = useState([]);
