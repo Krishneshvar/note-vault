@@ -1,0 +1,26 @@
+.notes-container {
+    padding: 20px;
+}
+
+.notes-container h2 {
+    margin-bottom: 20px;
+}
+
+.notes-container ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.notes-container li {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.button-group {
+    margin-top: 10px;
+}
+
+.button-group button {
+    margin-right: 10px;
+}
