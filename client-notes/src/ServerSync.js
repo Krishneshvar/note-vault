@@ -32,12 +32,10 @@ async function syncWithServer() {
                 await deleteNoteLocally(note.note_id); // Assuming you have this function in SQLInit.js
             }
             console.log('Successfully deleted synced notes from local storage.');
-        }
-        catch (error) {
+        } catch (error) {
             console.error('Sync failed:', error);
         }
-    }
-    else {
+    } else {
         console.log('You are currently offline. Sync will occur when back online.');
     }
 }

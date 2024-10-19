@@ -1,30 +1,14 @@
-import initSqlJs from 'sql.js';
+import Dexie from 'dexie';
 
-let db; // Database instance
+// Create a new database instance
+const db = new Dexie('MyDatabase');
 
-async function initializeDatabase() {
-    const SQL = await initSqlJs(); // Load sql.js
-    db = new SQL.Database(); // Create a new database
+// Define the database schema
+db.version(1).stores({
+    notes: '++note_id, create_time, title, description, status' // Primary key and indexed fields
+});
 
-    // Create the notes table if it doesn't exist
-    db.run(`CREATE TABLE IF NOT EXISTS notes (
-        note_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        create_time TEXT NOT NULL,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        status VARCHAR(20) DEFAULT 'active'
-    )`);
-
-    console.log('Database initialized and notes table created.');
-}
-
-async function getDb() {
-    if (!db) {
-        await initializeDatabase();
-    }
-    return db;
-}
-
+// Function to get the current date and time
 function getCurrentDateTime() {
     const now = new Date();
     const year = now.getFullYear();
@@ -41,48 +25,38 @@ function getCurrentDateTime() {
 async function saveNoteLocally(title, description, status = 'active') {
     const createdAt = getCurrentDateTime();
     
-    const db = await getDb(); // Ensure we have the initialized db
-    db.run(`INSERT INTO notes (create_time, title, description, status) VALUES (?, ?, ?, ?)`, 
-        [createdAt, title, description, status]);
+    await db.notes.add({
+        create_time: createdAt,
+        title,
+        description,
+        status
+    });
     
     console.log(`Note saved with title: ${title}`);
 }
 
 // Fetch all notes
 async function fetchNotes() {
-    const db = await getDb(); // Ensure we have the initialized db
-    const res = db.exec(`SELECT * FROM notes`);
-    
-    if (res.length > 0) {
-        return res[0].values.map(row => ({
-            note_id: row[0],
-            create_time: row[1],
-            title: row[2],
-            description: row[3],
-            status: row[4]
-        }));
-    }
-    
-    return [];
+    return await db.notes.toArray(); // Fetch all notes as an array
 }
 
 // Delete a note
 async function deleteNoteLocally(noteId) {
-    const db = await getDb(); // Ensure we have the initialized db
-    db.run(`DELETE FROM notes WHERE note_id = ?`, [noteId]);
+    await db.notes.delete(noteId); // Delete note by ID
     console.log(`Deleted note with ID ${noteId}`);
 }
 
 // Update a note
 async function updateNoteLocally(noteId, title, description, status) {
-    const db = await getDb(); // Ensure we have the initialized db
-    db.run(`UPDATE notes SET title = ?, description = ?, status = ? WHERE note_id = ?`, 
-        [title, description, status, noteId]);
-    
+    await db.notes.update(noteId, { title, description, status });
     console.log(`Updated note with ID ${noteId}`);
 }
 
-// Initialize the database when the module is loaded
+// Initialize the database (optional in Dexie)
+async function initializeDatabase() {
+    // You can perform any setup here if needed
+}
+
 initializeDatabase();
 
-export { getDb, saveNoteLocally, fetchNotes, deleteNoteLocally, updateNoteLocally };
+export { saveNoteLocally, fetchNotes, deleteNoteLocally, updateNoteLocally };

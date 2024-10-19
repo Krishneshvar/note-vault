@@ -1,95 +1,120 @@
-import { useEffect, useState } from 'react';
-import './assets/App.css';
-import { saveNoteLocally, fetchNotes } from './SQLInit'; // Importing functions from SQLInit
-import { syncWithServer } from './ServerSync';
+import { useEffect, useState } from 'react'
+import { saveNoteLocally, fetchNotes } from './SQLInit'
+import { syncWithServer } from './ServerSync'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-function App() {
-  const [addNote, setAddNote] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
-  const [notes, setNotes] = useState([]);
+export default function App() {
+  const [addNote, setAddNote] = useState(false)
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [error, setError] = useState('')
+  const [notes, setNotes] = useState([])
 
   useEffect(() => {
     const loadNotes = async () => {
       try {
-        const fetchedNotes = await fetchNotes(); // Fetching notes from local DB
-        setNotes(fetchedNotes);
+        const fetchedNotes = await fetchNotes()
+        setNotes(fetchedNotes)
       } catch (error) {
-        console.error('Error loading notes:', error); // Error handling
+        console.error('Error loading notes:', error)
       }
-    };
+    }
 
-    loadNotes();
-  }, []);
+    loadNotes()
+  }, [])
 
   function addNoteDisplay() {
-    setAddNote(!addNote);
+    setAddNote(!addNote)
   }
 
   const handleAddNote = async () => {
-    const trimmedTitle = title.trim();
-    const trimmedDescription = description.trim();
+    const trimmedTitle = title.trim()
+    const trimmedDescription = description.trim()
 
     if (trimmedTitle && trimmedDescription) {
       try {
-        await saveNoteLocally(trimmedTitle, trimmedDescription); // Save note locally
-        setTitle('');
-        setDescription('');
-        setAddNote(false);
-        setError(''); // Clear any previous errors
+        await saveNoteLocally(trimmedTitle, trimmedDescription)
+        setTitle('')
+        setDescription('')
+        setAddNote(false)
+        setError('')
 
-        // Fetch updated notes after adding a new one
-        const fetchedNotes = await fetchNotes(); // Ensure we have the latest notes
-        setNotes(fetchedNotes);
+        const fetchedNotes = await fetchNotes()
+        setNotes(fetchedNotes)
       } catch (err) {
-        console.error('Error saving note:', err);
-        setError('Failed to save note. Please try again.');
+        console.error('Error saving note:', err)
+        setError('Failed to save note. Please try again.')
       }
     } else {
-      setError('Please enter both title and description.');
+      setError('Please enter both title and description.')
     }
-  };
+  }
 
   return (
-    <>
-      <div className="notes-container">
-        <h1>Notes</h1>
-        <button onClick={addNoteDisplay}>+</button>
-        <button onClick={syncWithServer}>Sync</button>
-        {error && <p className="error-message">{error}</p>} {/* Display error message */}
-        {addNote ? (
-          <div>
-            <input 
-              type="text" 
-              placeholder='Title' 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
-              required
-            />
-            <input 
-              type="text" 
-              placeholder='Description' 
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
-              required
-            />
-            <button onClick={handleAddNote}>Add</button>
+    <div className="container-fluid bg-light min-vh-100 py-5">
+      <div className="container">
+        <div className="card shadow">
+          <div className="card-body">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h1 className="card-title h3">Notes</h1>
+              <div>
+                <button
+                  onClick={addNoteDisplay}
+                  className="btn btn-primary me-2"
+                >
+                  {addNote ? 'Cancel' : 'Add Note'}
+                </button>
+                <button
+                  onClick={syncWithServer}
+                  className="btn btn-success"
+                >
+                  Sync
+                </button>
+              </div>
+            </div>
+
+            {error && <p className="text-danger mb-3">{error}</p>}
+
+            {addNote && (
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="form-control mb-2"
+                  required
+                />
+                <textarea
+                  placeholder="Description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="form-control mb-2"
+                  rows="3"
+                  required
+                />
+                <button
+                  onClick={handleAddNote}
+                  className="btn btn-primary w-100"
+                >
+                  Add Note
+                </button>
+              </div>
+            )}
+
+            <ul className="list-unstyled">
+              {notes.map((note) => (
+                <li key={note.note_id} className="card mb-3">
+                  <div className="card-body">
+                    <h3 className="card-title h5">{note.title}</h3>
+                    <p className="card-text text-muted">{note.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
-        ) : null}
-
-        {/* Displaying all notes */}
-        <ul>
-          {notes.map(note => (
-            <li key={note.note_id}>
-              <h3>{note.title}</h3>
-              <p>{note.description}</p>
-            </li>
-          ))}
-        </ul>
+        </div>
       </div>
-    </>
-  );
+    </div>
+  )
 }
-
-export default App;
